@@ -19,7 +19,7 @@ The interpreter manages memory using a dynamic stack (`MemoryStack`), allowing f
 Clone the repository:
 ```bash
 git clone https://github.com/kusrabyzarc/NeoBrainF--k.git
-cd NeoBrainFuckInterpreter
+cd NeoBrainF--k
 ```
 ### Running the Interpreter
 Run a Brainfuck program using the interpreter:
