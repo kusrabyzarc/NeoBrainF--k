@@ -32,18 +32,20 @@ vanilla_memory_stack: [bool] use static 30k-sized memory stack instead of dynami
 
 ### Running the Interpreter
 Run a Brainfuck program using the interpreter:
+
 ```python
-from nbfi import NeoBrainFuckInterpreter
+from NeoBrainFuckInterpretor.core import NeoBrainFuckInterpreter
 
 code = "+[$,%.]"  # Example Brainfuck program to input a symbol and get its ASCII code
 itr = NeoBrainFuckInterpreter(code)
 itr.run()
 ```
 ### Another Example
-```python
-from nbfi import NeoBrainFuckInterpreter
 
-code = "%,>,<[->+<]>." # Example Brainfuck program to input 2 numbers and print sum
+```python
+from NeoBrainFuckInterpretor.core import NeoBrainFuckInterpreter
+
+code = "%,>,<[->+<]>."  # Example Brainfuck program to input 2 numbers and print sum
 itr = NeoBrainFuckInterpreter(code, do_debug=True)
 itr.run()
 ```
