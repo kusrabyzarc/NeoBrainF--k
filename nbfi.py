@@ -18,10 +18,10 @@ class MemoryStack:
             if isinstance(item, slice):
                 start = item.start or 0
                 stop = item.stop or len(self.__val__)
-                if start not in range(30_001) or stop not in range(30_001):
+                if start not in range(30_000) or stop not in range(30_000):
                     throw_error = True
             if isinstance(item, int):
-                if item not in range(30_001):
+                if item not in range(30_000):
                     throw_error = True
             if throw_error:
                 raise IndexError(f'vanilla stack out of range ({item}).')
@@ -67,7 +67,7 @@ class MemoryStack:
             raise TypeError(f'MemoryStack indices must be int, not {type(key)}')
 
         if self.__vanilla__:
-            if key not in range(30_001):
+            if key not in range(30_000):
                 raise IndexError(f'vanilla stack out of range ({key}).')
 
         key += self.__neg_shift__
@@ -221,7 +221,7 @@ class NeoBrainFuckInterpreter:
 
     def run(self):
         while self.__CODE_POINTER__ < len(self.__CODE__):
-            if self.__MEMORY__.__vanilla__ and self.__MEMORY_POINTER__ not in range(30_001):
+            if self.__MEMORY__.__vanilla__ and self.__MEMORY_POINTER__ not in range(30_000):
                 raise IndexError(f'vanilla stack out of range ({self.__MEMORY_POINTER__}).')
             if self.__DO_DBG__:
                 self.__dbg__()
