@@ -21,6 +21,15 @@ Clone the repository:
 git clone https://github.com/kusrabyzarc/NeoBrainF--k.git
 cd NeoBrainF--k
 ```
+
+### Interpreter args
+```text
+code: [str] BrainFuck code
+do_debug: [bool] print debug info (default: False)
+vanilla_cell_behaviour: [bool] clamp values in memory to range 0-255 (default: False)
+vanilla_memory_stack: [bool] use static 30k-sized memory stack instead of dynamic (default: False)
+```
+
 ### Running the Interpreter
 Run a Brainfuck program using the interpreter:
 ```python
@@ -39,7 +48,7 @@ itr = NeoBrainFuckInterpreter(code, do_debug=True)
 itr.run()
 ```
 
-```plaintext
+```text
 ------------------------------------------------
 Memory pointer: 0
 Code pointer: 0 (%)

@@ -1,11 +1,30 @@
 class MemoryStack:
-    def __init__(self):
-        self.__val__ = [0]
+    def __init__(self, vanilla):
+        self.__vanilla__ = vanilla
+        if self.__vanilla__:
+            self.__val__ = [0 for _ in range(30_000)]
+        else:
+            self.__val__ = [0]
         self.__neg_shift__ = 0
 
     def __getitem__(self, item):
         if not isinstance(item, (int, slice)):
             raise TypeError(f'MemoryStack indices must be int or slice, not {type(item)}')
+
+        if self.__vanilla__:
+            throw_error = False
+            if self.__neg_shift__ != 0:
+                throw_error = True
+            if isinstance(item, slice):
+                start = item.start or 0
+                stop = item.stop or len(self.__val__)
+                if start not in range(30_001) or stop not in range(30_001):
+                    throw_error = True
+            if isinstance(item, int):
+                if item not in range(30_001):
+                    throw_error = True
+            if throw_error:
+                raise IndexError(f'vanilla stack out of range ({item}).')
 
         if isinstance(item, slice):
             start = item.start or 0
@@ -47,6 +66,10 @@ class MemoryStack:
         if not isinstance(key, int):
             raise TypeError(f'MemoryStack indices must be int, not {type(key)}')
 
+        if self.__vanilla__:
+            if key not in range(30_001):
+                raise IndexError(f'vanilla stack out of range ({key}).')
+
         key += self.__neg_shift__
         while key < 0:
             key += 1
@@ -63,19 +86,31 @@ class MemoryStack:
 
 
 class NeoBrainFuckInterpreter:
-    def __init__(self, obj, *, do_debug=False):
+    """
+    NeoBrainFuck interpreter class.
+    """
+
+    def __init__(self, code: str, *, do_debug: bool = False, vanilla_cell_behaviour: bool = False,
+                 vanilla_memory_stack: bool = False):
+        """
+        :param code: [str] BrainFuck code
+        :param do_debug: [bool] print debug info (default: False)
+        :param vanilla_cell_behaviour: [bool] clamp values in memory to range 0-255 (default: False)
+        :param vanilla_memory_stack: [bool] use static 30k-sized memory stack instead of dynamic (default: False)
+        """
         self.__ALLOWED_COMMANDS__ = [',', '.', '>', '<', '+', '-', '[', ']', '$', '%', '^']
-        if isinstance(obj, str):
-            self.obj = obj
+        if isinstance(code, str):
+            self.obj = code
         else:
-            raise TypeError(f'Expected str object, but {type(obj)} found.')
+            raise TypeError(f'Expected str object, but {type(code)} found.')
         self.__CODE__ = list(filter(lambda x: x in self.__ALLOWED_COMMANDS__, self.obj))
-        self.__MEMORY__ = MemoryStack()
+        self.__MEMORY__ = MemoryStack(vanilla=vanilla_memory_stack)
         self.__CHR_MODE__ = True
         self.__DO_DBG__ = do_debug
         self.__MEMORY_POINTER__ = 0
         self.__CODE_POINTER__ = 0
         self.__BRA_KET_VALIDATION__()
+        self.__VANILLA_CELL__ = vanilla_cell_behaviour
 
     def __BRA_KET_VALIDATION__(self):
         """Correct loops validation"""
@@ -93,11 +128,15 @@ class NeoBrainFuckInterpreter:
     def __ADD__(self):
         """Add 1 to current cell (+)"""
         self.__MEMORY__[self.__MEMORY_POINTER__] += 1
+        if self.__VANILLA_CELL__:
+            self.__MEMORY__[self.__MEMORY_POINTER__] %= 256
         self.__CODE_POINTER__ += 1
 
     def __SUB__(self):
         """Subtract 1 from current cell (-)"""
         self.__MEMORY__[self.__MEMORY_POINTER__] -= 1
+        if self.__VANILLA_CELL__ and self.__MEMORY__[self.__MEMORY_POINTER__] < 0:
+            self.__MEMORY__[self.__MEMORY_POINTER__] = 255
         self.__CODE_POINTER__ += 1
 
     def __READ_MEMORY__(self):
@@ -176,11 +215,14 @@ class NeoBrainFuckInterpreter:
         print(f"Code pointer: {self.__CODE_POINTER__} ({self.__CODE__[self.__CODE_POINTER__]})")
         print(f"IO mode: {'ASCII' if self.__CHR_MODE__ else 'INT'}")
         print(f"Memory neg_shift: -{self.__MEMORY__.__neg_shift__}")
-        print(f"Memory: {self.__MEMORY__.__val__[:self.__MEMORY__.__neg_shift__]}:{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__]}:{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__ + 1:]}")
+        print(
+            f"Memory: {self.__MEMORY__.__val__[:self.__MEMORY__.__neg_shift__]}:{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__]}:{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__ + 1:]}")
         print('------------------------------------------------')
 
     def run(self):
         while self.__CODE_POINTER__ < len(self.__CODE__):
+            if self.__MEMORY__.__vanilla__ and self.__MEMORY_POINTER__ not in range(30_001):
+                raise IndexError(f'vanilla stack out of range ({self.__MEMORY_POINTER__}).')
             if self.__DO_DBG__:
                 self.__dbg__()
 
