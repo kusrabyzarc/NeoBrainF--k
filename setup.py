@@ -6,9 +6,14 @@ def readme():
         return f.read()
 
 
+def version():
+    with open('VERSION', 'r') as f:
+        return f.read().rstrip()
+
+
 setup(
     name='neobrainfuck',
-    version='1.0.0',
+    version=version(),
     author='kusrabyzarc',
     author_email='crazybarsuk@mail.ru',
     description='Just another rethink of the BrainFuck language',
@@ -33,5 +38,5 @@ setup(
     ],
     keywords='BrainFuck interpreter extended programming language esolang development python library brainfuck-interpreter esoteric extended-brainfuck',
     project_urls={},
-    python_requires='>=3.6'
+    python_requires='>=3.10'
 )

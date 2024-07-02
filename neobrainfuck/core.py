@@ -98,7 +98,7 @@ class NeoBrainFuckInterpreter:
         :param vanilla_cell_behaviour: [bool] clamp values in memory to range 0-255 (default: False)
         :param vanilla_memory_stack: [bool] use static 30k-sized memory stack instead of dynamic (default: False)
         """
-        self.__ALLOWED_COMMANDS__ = [',', '.', '>', '<', '+', '-', '[', ']', '$', '%', '^']
+        self.__ALLOWED_COMMANDS__ = [',', '.', '>', '<', '+', '-', '[', ']', '$', '%', '^', '&', '0']
         if isinstance(code, str):
             self.obj = code
         else:
@@ -123,7 +123,7 @@ class NeoBrainFuckInterpreter:
                 if cnt < 0:
                     break
         if cnt != 0:
-            raise AssertionError('Bra-Ket validation failed.')
+            raise ValueError('Bra-Ket validation failed.')
 
     def __ADD__(self):
         """Add 1 to current cell (+)"""
@@ -188,17 +188,17 @@ class NeoBrainFuckInterpreter:
             self.__CODE_POINTER__ += 1
 
     def __SET_CHR_MODE__(self):
-        """Set IO mode to ASCII ($)"""
+        """Switches IO mode to ASCII ($)"""
         self.__CHR_MODE__ = True
         self.__CODE_POINTER__ += 1
 
     def __SET_INT_MODE__(self):
-        """Set IO mode to INT (%)"""
+        """Switches IO mode to integers (%)"""
         self.__CHR_MODE__ = False
         self.__CODE_POINTER__ += 1
 
     def __JMP_MEM__(self):
-        """Jump to memory cell with address eq value of current memory cell (^)"""
+        """Jumps to memory cell with address which equals the value of current memory cell (^)"""
         shift = self.__READ_MEMORY__() - self.__MEMORY_POINTER__
         if shift > 0:
             for _ in range(shift):
@@ -208,15 +208,27 @@ class NeoBrainFuckInterpreter:
                 self.__SHIFT_LEFT__(__internal_call__=True)
         self.__CODE_POINTER__ += 1
 
+    def __JMP_CODE__(self):
+        """Jumps to the instruction with address which equals the value of current memory cell (&)"""
+        value = self.__READ_MEMORY__()
+        if len(self.__CODE__) <= value or 0 > value:
+            raise IndexError(f'tried to jump instruction {value}, but code address range is 0-{len(self.__CODE__)-1}')
+        self.__CODE_POINTER__ = value
+
+    def __NOP__(self):
+        """No operation (0)"""
+        self.__CODE_POINTER__ += 1
+
     def __dbg__(self):
         """Debug info"""
         print('------------------------------------------------')
         print(f"Memory pointer: {self.__MEMORY_POINTER__}")
         print(f"Code pointer: {self.__CODE_POINTER__} ({self.__CODE__[self.__CODE_POINTER__]})")
         print(f"IO mode: {'ASCII' if self.__CHR_MODE__ else 'INT'}")
-        print(f"Memory neg_shift: -{self.__MEMORY__.__neg_shift__}")
+        if not self.__MEMORY__.__vanilla__:
+            print(f"Memory neg_shift: {-self.__MEMORY__.__neg_shift__}")
         print(
-            f"Memory: {self.__MEMORY__.__val__[:self.__MEMORY__.__neg_shift__]}:{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__]}:{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__ + 1:]}")
+            f"Memory: {self.__MEMORY__.__val__[:self.__MEMORY__.__neg_shift__]}:[{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__]}]:{self.__MEMORY__.__val__[self.__MEMORY__.__neg_shift__ + 1:]}")
         print('------------------------------------------------')
 
     def run(self):
@@ -227,25 +239,30 @@ class NeoBrainFuckInterpreter:
                 self.__dbg__()
 
             cmd = self.__CODE__[self.__CODE_POINTER__]
-            if cmd == ',':
-                self.__INPUT__()
-            elif cmd == '.':
-                self.__OUTPUT__()
-            elif cmd == '>':
-                self.__SHIFT_RIGHT__()
-            elif cmd == '<':
-                self.__SHIFT_LEFT__()
-            elif cmd == '+':
-                self.__ADD__()
-            elif cmd == '-':
-                self.__SUB__()
-            elif cmd == '[':
-                self.__BRA__()
-            elif cmd == ']':
-                self.__KET__()
-            elif cmd == '$':
-                self.__SET_CHR_MODE__()
-            elif cmd == '%':
-                self.__SET_INT_MODE__()
-            elif cmd == '^':
-                self.__JMP_MEM__()
+            match cmd:
+                case ',':
+                    self.__INPUT__()
+                case '.':
+                    self.__OUTPUT__()
+                case '>':
+                    self.__SHIFT_RIGHT__()
+                case '<':
+                    self.__SHIFT_LEFT__()
+                case '+':
+                    self.__ADD__()
+                case '-':
+                    self.__SUB__()
+                case '[':
+                    self.__BRA__()
+                case ']':
+                    self.__KET__()
+                case '$':
+                    self.__SET_CHR_MODE__()
+                case '%':
+                    self.__SET_INT_MODE__()
+                case '^':
+                    self.__JMP_MEM__()
+                case '&':
+                    self.__JMP_CODE__()
+                case '0':
+                    self.__NOP__()
