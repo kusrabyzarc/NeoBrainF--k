@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import uuid
 
 
 def clean_previous_builds():
@@ -25,6 +26,13 @@ def upload_to_pypi():
 
 
 if __name__ == "__main__":
+    while True:
+        acceptance = str(uuid.uuid4()).split('-')[-2]
+        if input(f'Enter code "{acceptance}": ') != acceptance:
+            print('Wrong!')
+        else:
+            print('Accepted!')
+            break
     clean_previous_builds()
     build_distributions()
     upload_to_pypi()

@@ -234,7 +234,10 @@ class NeoBrainFuckInterpreter:
     def run(self):
         while self.__CODE_POINTER__ < len(self.__CODE__):
             if self.__MEMORY__.__vanilla__ and self.__MEMORY_POINTER__ not in range(30_000):
-                raise IndexError(f'vanilla stack out of range ({self.__MEMORY_POINTER__}).')
+                if self.__MEMORY_POINTER__ < 0:
+                    self.__MEMORY_POINTER__ += 30_000
+                else:
+                    self.__MEMORY_POINTER__ -= 30_000
             if self.__DO_DBG__:
                 self.__dbg__()
 

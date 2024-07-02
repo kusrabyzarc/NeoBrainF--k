@@ -1,1 +1,0 @@
-from neobrainfuck import NeoBrainFuckInterpreter
